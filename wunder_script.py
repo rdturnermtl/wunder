@@ -11,7 +11,10 @@ requests_cache.install_cache('wunderground_history',
                              backend='sqlite', expire_after=None)
 
 # This could be moved to a config file
-station_ids = {"SF": "CA/San_Francisco"}  # add more stations here if required
+station_ids = {"SF": "CA/San_Francisco",
+               "whistler": "airport/CVOC"}
+start_date = (2018, 03, 01)
+end_date = (2018, 03, 10)
 
 url_fmt = "http://api.wunderground.com/api/%s/history_%s/q/%s.json"
 
@@ -22,6 +25,8 @@ with open(api_key_file, 'rb') as f:
 
 # TODO check key valid
 
+end_date = datetime.date(*end_date)  # Make datetime obj
+
 for short_name, station_id in station_ids.iteritems():
     print "Fetching data for station ID (%s): %s" % (short_name, station_id)
     # initialise your csv file
@@ -31,12 +36,7 @@ for short_name, station_id in station_ids.iteritems():
         headers = ['date', 'temperature', 'wind speed']
         writer.writerow(headers)
 
-        # enter the first and last day required here
-        # TODO pull these to top
-        start_date = datetime.date(2012, 05, 03)
-        end_date = datetime.date(2012, 05, 07)
-
-        date = start_date
+        date = datetime.date(*start_date)
         while date <= end_date:
             # format the date as YYYYMMDD
             date_string = date.strftime('%Y%m%d')
