@@ -5,7 +5,7 @@ from sys import argv
 import requests  # this library makes html requests much simpler
 
 # This could be moved to a config file
-station_ids = {"SF": "CA/San_Francisco"} # add more stations here if required
+station_ids = {"SF": "CA/San_Francisco"}  # add more stations here if required
 
 url_fmt = "http://api.wunderground.com/api/%s/history_%s/q/%s.json"
 
@@ -40,7 +40,7 @@ for short_name, station_id in station_ids.iteritems():
                 row = []
                 row.append(str(history['date']['pretty']))
                 row.append(str(history['tempm']))
-                row.append(str(history['wspdm']))       
+                row.append(str(history['wspdm']))
                 writer.writerow(row)
             # increment the day by one
             date += datetime.timedelta(days=1)
