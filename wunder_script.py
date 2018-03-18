@@ -26,7 +26,7 @@ for short_name, station_id in station_ids.iteritems():
     print "Fetching data for station ID (%s): %s" % (short_name, station_id)
     # initialise your csv file
     with open('%s.csv' % short_name, 'wb') as outfile:
-        writer = csv.writer(outfile)
+        writer = csv.writer(outfile, lineterminator='\n')
         # TODO make fields a dict as well
         headers = ['date', 'temperature', 'wind speed']
         writer.writerow(headers)
