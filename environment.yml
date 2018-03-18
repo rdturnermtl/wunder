@@ -1,0 +1,26 @@
+name: wunder
+channels:
+- defaults
+dependencies:
+- ca-certificates=2017.08.26
+- certifi=2018.1.18
+- libedit=3.1
+- libffi=3.2.1
+- libgcc-ng=7.2.0
+- libstdcxx-ng=7.2.0
+- ncurses=6.0
+- openssl=1.0.2n
+- pip=9.0.1
+- python=2.7.14
+- readline=7.0
+- setuptools=38.5.1
+- sqlite=3.22.0
+- tk=8.6.7
+- wheel=0.30.0
+- zlib=1.2.11
+- pip:
+  - chardet==3.0.4
+  - idna==2.6
+  - requests==2.18.4
+  - requests-cache==0.4.13
+  - urllib3==1.22

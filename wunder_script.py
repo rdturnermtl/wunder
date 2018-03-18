@@ -2,7 +2,13 @@
 import csv
 import datetime
 from sys import argv
-import requests  # this library makes html requests much simpler
+from time import time
+import requests
+import requests_cache
+
+# Ideally, we can move to non-monkey patch version later
+requests_cache.install_cache('wunderground_history',
+                             backend='sqlite', expire_after=None)
 
 # This could be moved to a config file
 station_ids = {"SF": "CA/San_Francisco"}  # add more stations here if required
@@ -14,6 +20,8 @@ api_key_file = argv[1]
 with open(api_key_file, 'rb') as f:
     api_key = f.read().strip()  # Remove any whitespace/newlines
 
+# TODO check key valid
+
 for short_name, station_id in station_ids.iteritems():
     print "Fetching data for station ID (%s): %s" % (short_name, station_id)
     # initialise your csv file
@@ -24,6 +32,7 @@ for short_name, station_id in station_ids.iteritems():
         writer.writerow(headers)
 
         # enter the first and last day required here
+        # TODO pull these to top
         start_date = datetime.date(2012, 05, 03)
         end_date = datetime.date(2012, 05, 07)
 
@@ -34,7 +43,10 @@ for short_name, station_id in station_ids.iteritems():
             # build the url
             url = url_fmt % (api_key, date_string, station_id)
             # make the request and parse json
+            print "Loading %s @ %s" % (short_name, date_string)
+            t = time()
             data = requests.get(url).json()
+            print (time() - t), 's'
             # build your row
             for history in data['history']['observations']:
                 row = []
