@@ -10,17 +10,30 @@ import requests_cache
 
 # TODO check all units
 
-# Ideally, we can move to non-monkey patch version later
+# Setup request cache. Ideally, we can move to non-monkey patch version later.
 requests_cache.install_cache('wunderground_history',
                              backend='sqlite', expire_after=None)
 
+# ============================================================================
+# User settings. This could go in a config file at some point.
+# ============================================================================
+
+station_ids = {'SF': 'CA/San_Francisco',
+               'whistler': 'airport/CVOC'}
+start_date = (2018, 03, 01)
+end_date = (2018, 03, 10)
+
 print_response = False
+hourly_fname_fmt = '%s_hourly.csv'
+daily_fname_fmt = '%s_daily.csv'
 
 tz_short = {'UTC': 'UTC',
             'America/Vancouver': 'PT',
             'America/Los_Angeles': 'PT'}
 
-# https://www.wunderground.com/weather/api/d/docs?d=resources/phrase-glossary
+'''See the phrase glossary for field descriptions:
+https://www.wunderground.com/weather/api/d/docs?d=resources/phrase-glossary
+'''
 hourly_fields = OrderedDict([('temperature_C', 'tempm'),
                              ('wind_speed_kph', 'wspdm'),
                              ('wind_gust_kph', 'wgustm'),
@@ -45,13 +58,9 @@ daily_fields = OrderedDict([('mean_temperature_C', 'meantempm'),
                             ('hail_bool', 'hail'),
                             ('thunder_bool', 'thunder')])
 
-# This could be moved to a config file
-station_ids = {'SF': 'CA/San_Francisco',
-               'whistler': 'airport/CVOC'}
-start_date = (2018, 03, 01)
-end_date = (2018, 03, 10)
-hourly_fname_fmt = '%s_hourly.csv'
-daily_fname_fmt = '%s_daily.csv'
+# ============================================================================
+# The actual script.
+# ============================================================================
 
 
 def cleanup(x, na_value=''):
@@ -64,6 +73,7 @@ def cleanup(x, na_value=''):
     x = str(x)  # Ensure not unicode
     return x
 
+# This is the url to make the request to wunderground:
 url_fmt = 'http://api.wunderground.com/api/%s/history_%s/q/%s.json'
 
 # We could make this dict to rename them, but names good enough for now.
