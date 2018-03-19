@@ -1,4 +1,5 @@
 # Ryan Turner (turnerry@iro.umontreal.ca)
+from collections import OrderedDict
 import csv
 import datetime
 import pprint
@@ -9,6 +10,7 @@ import requests_cache
 
 # TODO change quote style
 # TODO cleanup missing vals
+# TODO check all units
 
 # Ideally, we can move to non-monkey patch version later
 requests_cache.install_cache('wunderground_history',
@@ -21,30 +23,29 @@ tz_short_names = {'UTC': 'UTC',
                   'America/Los_Angeles': 'PT'}
 
 # https://www.wunderground.com/weather/api/d/docs?d=resources/phrase-glossary
-# TODO use ordered dict
-hourly_fields = {'temperature_C': 'tempm',
-                 'wind_speed_kph': 'wspdm',
-                 'wind_gust_kph': 'wgustm',
-                 'precip_mm': 'precipm',
-                 'rain_bool': 'rain',
-                 'snow_bool': 'snow',
-                 'hail_bool': 'hail',
-                 'thunder_bool': 'thunder'}
+hourly_fields = OrderedDict([('temperature_C', 'tempm'),
+                             ('wind_speed_kph', 'wspdm'),
+                             ('wind_gust_kph', 'wgustm'),
+                             ('precip_mm', 'precipm'),
+                             ('rain_bool', 'rain'),
+                             ('snow_bool', 'snow'),
+                             ('hail_bool', 'hail'),
+                             ('thunder_bool', 'thunder')])
 
-daily_fields = {'mean_temperature_C': 'meantempm',
-                'min_temperature_C': 'mintempm',
-                'max_temperature_C': 'maxtempm',
-                'mean_wind_speed_kph': 'meanwindspdm',
-                'min_wind_speed_kph': 'minwspdm',
-                'max_wind_speed_kph': 'maxwspdm',
-                'precip_mm': 'precipm',
-                'snowfall_cm': 'snowfallm',  # TODO check units
-                'cum_snowfall_cm': 'since1julsnowfallm',
-                'snow_depth_cm': 'snowdepthm',
-                'rain_bool': 'rain',
-                'snow_bool': 'snow',
-                'hail_bool': 'hail',
-                'thunder_bool': 'thunder'}
+daily_fields = OrderedDict([('mean_temperature_C', 'meantempm'),
+                            ('min_temperature_C', 'mintempm'),
+                            ('max_temperature_C', 'maxtempm'),
+                            ('mean_wind_speed_kph', 'meanwindspdm'),
+                            ('min_wind_speed_kph', 'minwspdm'),
+                            ('max_wind_speed_kph', 'maxwspdm'),
+                            ('precip_mm', 'precipm'),
+                            ('snowfall_cm', 'snowfallm'),
+                            ('cum_snowfall_cm', 'since1julsnowfallm'),
+                            ('snow_depth_cm', 'snowdepthm'),
+                            ('rain_bool', 'rain'),
+                            ('snow_bool', 'snow'),
+                            ('hail_bool', 'hail'),
+                            ('thunder_bool', 'thunder')])
 
 # This could be moved to a config file
 station_ids = {"SF": "CA/San_Francisco",
@@ -73,8 +74,6 @@ daily_cols, daily_json_keys = daily_fields.keys(), daily_fields.values()
 api_key_file = argv[1]
 with open(api_key_file, 'rb') as f:
     api_key = f.read().strip()  # Remove any whitespace/newlines
-
-# TODO check key valid
 
 # Dump hourly data
 for short_name, station_id in station_ids.iteritems():
@@ -149,7 +148,6 @@ for short_name, station_id in station_ids.iteritems():
 
             # build row for daily data, unpack singleton
             history, = data['history']['dailysummary']
-            pp.pprint(history)
             row = []
             for col in date_fields:
                 row.append(str(history['date'][col]))
