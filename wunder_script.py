@@ -8,6 +8,7 @@ import requests
 import requests_cache
 
 # TODO change quote style
+# TODO cleanup missing vals
 
 # Ideally, we can move to non-monkey patch version later
 requests_cache.install_cache('wunderground_history',
@@ -23,15 +24,15 @@ tz_short_names = {'UTC': 'UTC',
                   'America/Los_Angeles': 'PT'}
 
 # https://www.wunderground.com/weather/api/d/docs?d=resources/phrase-glossary
-# TODO add units to later ones
+# TODO use ordered dict
 hourly_fields = {'temperature_C': 'tempm',
                  'wind_speed_kph': 'wspdm',
                  'wind_gust_kph': 'wgustm',
                  'precip_mm': 'precipm',
-                 'rain': 'rain',
-                 'snow': 'snow',
-                 'hail': 'hail',
-                 'thunder': 'thunder'}
+                 'rain_bool': 'rain',
+                 'snow_bool': 'snow',
+                 'hail_bool': 'hail',
+                 'thunder_bool': 'thunder'}
 
 daily_fields = {'mean_temperature_C': 'meantempm',
                 'min_temperature_C': 'mintempm',
@@ -60,7 +61,7 @@ url_fmt = "http://api.wunderground.com/api/%s/history_%s/q/%s.json"
 pp = pprint.PrettyPrinter(indent=4)
 end_date = datetime.date(*end_date)
 # Setup list of json keys and column names
-date_cols_utc = [ss + tz_short_names['UTC'] for ss in date_fields]
+date_cols_utc = ['_'.join((ss, tz_short_names['UTC'])) for ss in date_fields]
 hourly_cols, hourly_json_keys = hourly_fields.keys(), hourly_fields.values()
 
 # Load in wunderground API key
@@ -97,7 +98,8 @@ for short_name, station_id in station_ids.iteritems():
                 # Setup for headers on first iteration
                 if station_tz is None:
                     station_tz = history['date']['tzname']
-                    date_cols_local = [ss + tz_short_names[station_tz] for
+                    station_tz_short = tz_short_names[station_tz]
+                    date_cols_local = ['_'.join((ss, station_tz_short)) for
                                        ss in date_fields]
                     headers = date_cols_utc + date_cols_local + hourly_cols
                     writer.writerow(headers)
