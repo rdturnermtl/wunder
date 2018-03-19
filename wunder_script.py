@@ -8,8 +8,6 @@ from time import time
 import requests
 import requests_cache
 
-# TODO check all units
-
 # Setup request cache. Ideally, we can move to non-monkey patch version later.
 requests_cache.install_cache('wunderground_history',
                              backend='sqlite', expire_after=None)
@@ -19,7 +17,8 @@ requests_cache.install_cache('wunderground_history',
 # ============================================================================
 
 station_ids = {'SF': 'CA/San_Francisco',
-               'whistler': 'airport/CVOC'}
+               'whistler': 'airport/CVOC',
+               'heavenly': 'airport/KTVL'}
 start_date = (2018, 03, 01)
 end_date = (2018, 03, 10)
 
@@ -50,9 +49,6 @@ daily_fields = OrderedDict([('mean_temperature_C', 'meantempm'),
                             ('min_wind_speed_kph', 'minwspdm'),
                             ('max_wind_speed_kph', 'maxwspdm'),
                             ('precip_mm', 'precipm'),
-                            ('snowfall_cm', 'snowfallm'),
-                            ('cum_snowfall_cm', 'since1julsnowfallm'),
-                            ('snow_depth_cm', 'snowdepthm'),
                             ('rain_bool', 'rain'),
                             ('snow_bool', 'snow'),
                             ('hail_bool', 'hail'),
@@ -63,13 +59,26 @@ daily_fields = OrderedDict([('mean_temperature_C', 'meantempm'),
 # ============================================================================
 
 
-def cleanup(x, na_value=''):
+def cleanup(x, na_value='', trace_value='0', check_numeric=True):
     '''Wunder API uses -999 or -9999 for missing data. Clean up that crap.'''
-    if x == '':
+    if x == '' or x == 'MM':
         return na_value
     if x.startswith('-999'):
         assert(float(x) in (-999.0, -9999.0))
         return na_value
+    if x == 'T':
+        return trace_value
+
+    if check_numeric:
+        try:
+            x_numeric = float(x)
+            # Don't bother importing numpy just for isnan
+            assert(x_numeric == x_numeric)
+        except:
+            # Could use warnings package to be fancier
+            print '%s not valid numeric value' % x
+            return na_value
+
     x = str(x)  # Ensure not unicode
     return x
 
