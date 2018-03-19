@@ -8,7 +8,6 @@ from time import time
 import requests
 import requests_cache
 
-# TODO cleanup missing vals
 # TODO check all units
 
 # Ideally, we can move to non-monkey patch version later
@@ -53,6 +52,17 @@ start_date = (2018, 03, 01)
 end_date = (2018, 03, 10)
 hourly_fname_fmt = '%s_hourly.csv'
 daily_fname_fmt = '%s_daily.csv'
+
+
+def cleanup(x, na_value=''):
+    '''Wunder API uses -999 or -9999 for missing data. Clean up that crap.'''
+    if x == '':
+        return na_value
+    if x.startswith('-999'):
+        assert(float(x) in (-999.0, -9999.0))
+        return na_value
+    x = str(x)  # Ensure not unicode
+    return x
 
 url_fmt = 'http://api.wunderground.com/api/%s/history_%s/q/%s.json'
 
@@ -112,11 +122,11 @@ for short_name, station_id in station_ids.iteritems():
 
                 row = []
                 for col in datetime_fields:
-                    row.append(str(history['utcdate'][col]))
+                    row.append(cleanup(history['utcdate'][col]))
                 for col in datetime_fields:
-                    row.append(str(history['date'][col]))
+                    row.append(cleanup(history['date'][col]))
                 for col in hourly_json_keys:
-                    row.append(str(history[col]))
+                    row.append(cleanup(history[col]))
                 writer.writerow(row)
             # increment the day by one
             date += datetime.timedelta(days=1)
@@ -149,9 +159,9 @@ for short_name, station_id in station_ids.iteritems():
             history, = data['history']['dailysummary']
             row = []
             for col in date_fields:
-                row.append(str(history['date'][col]))
+                row.append(cleanup(history['date'][col]))
             for col in daily_json_keys:
-                row.append(str(history[col]))
+                row.append(cleanup(history[col]))
             writer.writerow(row)
             # increment the day by one
             date += datetime.timedelta(days=1)
