@@ -8,7 +8,6 @@ from time import time
 import requests
 import requests_cache
 
-# TODO change quote style
 # TODO cleanup missing vals
 # TODO check all units
 
@@ -18,9 +17,9 @@ requests_cache.install_cache('wunderground_history',
 
 print_response = False
 
-tz_short_names = {'UTC': 'UTC',
-                  'America/Vancouver': 'PT',
-                  'America/Los_Angeles': 'PT'}
+tz_short = {'UTC': 'UTC',
+            'America/Vancouver': 'PT',
+            'America/Los_Angeles': 'PT'}
 
 # https://www.wunderground.com/weather/api/d/docs?d=resources/phrase-glossary
 hourly_fields = OrderedDict([('temperature_C', 'tempm'),
@@ -48,14 +47,14 @@ daily_fields = OrderedDict([('mean_temperature_C', 'meantempm'),
                             ('thunder_bool', 'thunder')])
 
 # This could be moved to a config file
-station_ids = {"SF": "CA/San_Francisco",
-               "whistler": "airport/CVOC"}
+station_ids = {'SF': 'CA/San_Francisco',
+               'whistler': 'airport/CVOC'}
 start_date = (2018, 03, 01)
 end_date = (2018, 03, 10)
 hourly_fname_fmt = '%s_hourly.csv'
 daily_fname_fmt = '%s_daily.csv'
 
-url_fmt = "http://api.wunderground.com/api/%s/history_%s/q/%s.json"
+url_fmt = 'http://api.wunderground.com/api/%s/history_%s/q/%s.json'
 
 # We could make this dict to rename them, but names good enough for now.
 time_fields = ['hour', 'min']
@@ -66,7 +65,7 @@ datetime_fields = date_fields + time_fields
 pp = pprint.PrettyPrinter(indent=4)
 end_date = datetime.date(*end_date)
 # Setup list of json keys and column names
-date_cols_utc = ['_'.join((ss, tz_short_names['UTC'])) for ss in datetime_fields]
+date_cols_utc = ['_'.join((ss, tz_short['UTC'])) for ss in datetime_fields]
 hourly_cols, hourly_json_keys = hourly_fields.keys(), hourly_fields.values()
 daily_cols, daily_json_keys = daily_fields.keys(), daily_fields.values()
 
@@ -77,7 +76,7 @@ with open(api_key_file, 'rb') as f:
 
 # Dump hourly data
 for short_name, station_id in station_ids.iteritems():
-    print "Fetching data for station ID (%s): %s" % (short_name, station_id)
+    print 'Fetching data for station ID (%s): %s' % (short_name, station_id)
     # initialize your csv file
     with open(hourly_fname_fmt % short_name, 'wb') as outfile:
         writer = csv.writer(outfile, lineterminator='\n')
@@ -90,7 +89,7 @@ for short_name, station_id in station_ids.iteritems():
             # build the url
             url = url_fmt % (api_key, date_string, station_id)
             # make the request and parse json (and time it)
-            print "Loading %s @ %s" % (short_name, date_string)
+            print 'Loading %s @ %s' % (short_name, date_string)
             t = time()
             data = requests.get(url).json()
             print (time() - t), 's'
@@ -103,9 +102,9 @@ for short_name, station_id in station_ids.iteritems():
                 # Setup for headers on first iteration
                 if station_tz is None:
                     station_tz = history['date']['tzname']
-                    station_tz_short = tz_short_names[station_tz]
-                    date_cols_local = ['_'.join((ss, station_tz_short)) for
-                                       ss in datetime_fields]
+                    station_tz_short = tz_short[station_tz]
+                    date_cols_local = ['_'.join((ss, station_tz_short))
+                                       for ss in datetime_fields]
                     headers = date_cols_utc + date_cols_local + hourly_cols
                     writer.writerow(headers)
                 assert(station_tz is not None)
@@ -138,7 +137,7 @@ for short_name, station_id in station_ids.iteritems():
             # build the url
             url = url_fmt % (api_key, date_string, station_id)
             # make the request and parse json (and time it)
-            print "Loading %s @ %s" % (short_name, date_string)
+            print 'Loading %s @ %s' % (short_name, date_string)
             t = time()
             data = requests.get(url).json()
             print (time() - t), 's'
@@ -156,4 +155,4 @@ for short_name, station_id in station_ids.iteritems():
             writer.writerow(row)
             # increment the day by one
             date += datetime.timedelta(days=1)
-print "Done"
+print 'Done'
