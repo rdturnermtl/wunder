@@ -1,14 +1,21 @@
 # Ryan Turner (turnerry@iro.umontreal.ca)
 import csv
 import datetime
+import pprint
 from sys import argv
 from time import time
 import requests
 import requests_cache
 
+# TODO change quote style
+
 # Ideally, we can move to non-monkey patch version later
 requests_cache.install_cache('wunderground_history',
                              backend='sqlite', expire_after=None)
+
+print_response = True
+
+weather_fields = {'temperature', 'wind speed'}
 
 # This could be moved to a config file
 station_ids = {"SF": "CA/San_Francisco",
@@ -25,6 +32,7 @@ with open(api_key_file, 'rb') as f:
 
 # TODO check key valid
 
+pp = pprint.PrettyPrinter(indent=4)
 end_date = datetime.date(*end_date)  # Make datetime obj
 
 for short_name, station_id in station_ids.iteritems():
@@ -38,15 +46,19 @@ for short_name, station_id in station_ids.iteritems():
 
         date = datetime.date(*start_date)
         while date <= end_date:
-            # format the date as YYYYMMDD
+            # format the date as YYYYMMDD as per wunderground api spec
             date_string = date.strftime('%Y%m%d')
             # build the url
             url = url_fmt % (api_key, date_string, station_id)
-            # make the request and parse json
+            # make the request and parse json (and time it)
             print "Loading %s @ %s" % (short_name, date_string)
             t = time()
             data = requests.get(url).json()
             print (time() - t), 's'
+
+            if print_response:
+                pp.pprint(data)
+
             # build your row
             for history in data['history']['observations']:
                 row = []
