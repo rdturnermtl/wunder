@@ -18,9 +18,10 @@ requests_cache.install_cache('wunderground_history',
 
 station_ids = {'SF': 'CA/San_Francisco',
                'whistler': 'airport/CVOC',
-               'heavenly': 'airport/KTVL'}
-start_date = (2018, 03, 01)
-end_date = (2018, 03, 10)
+               'heavenly': 'airport/KTVL',
+               'montreal': 'airport/CYHU'}
+start_date = (2018, 3, 1)
+end_date = (2018, 3, 10)
 
 print_response = False
 hourly_fname_fmt = '%s_hourly.csv'
@@ -28,7 +29,8 @@ daily_fname_fmt = '%s_daily.csv'
 
 tz_short = {'UTC': 'UTC',
             'America/Vancouver': 'PT',
-            'America/Los_Angeles': 'PT'}
+            'America/Los_Angeles': 'PT',
+            'America/Montreal': 'ET'}
 
 '''See the phrase glossary for field descriptions:
 https://www.wunderground.com/weather/api/d/docs?d=resources/phrase-glossary
@@ -59,7 +61,7 @@ daily_fields = OrderedDict([('mean_temperature_C', 'meantempm'),
 # ============================================================================
 
 
-def cleanup(x, na_value='', trace_value='0', check_numeric=True):
+def cleanup(x, na_value='', trace_value='0', as_type=float):
     '''Wunder API uses -999 or -9999 for missing data. Clean up that crap.'''
     if x == '' or x == 'MM':
         return na_value
@@ -69,14 +71,14 @@ def cleanup(x, na_value='', trace_value='0', check_numeric=True):
     if x == 'T':
         return trace_value
 
-    if check_numeric:
+    if as_type is not None:
         try:
-            x_numeric = float(x)
+            x_typed = as_type(x)
             # Don't bother importing numpy just for isnan
-            assert(x_numeric == x_numeric)
+            assert(x_typed == x_typed)
         except:
             # Could use warnings package to be fancier
-            print '%s not valid numeric value' % x
+            print '%s not valid as type %s' % (x, str(as_type))
             return na_value
 
     x = str(x)  # Ensure not unicode
@@ -141,9 +143,9 @@ for short_name, station_id in station_ids.iteritems():
 
                 row = []
                 for col in datetime_fields:
-                    row.append(cleanup(history['utcdate'][col]))
+                    row.append(cleanup(history['utcdate'][col], as_type=int))
                 for col in datetime_fields:
-                    row.append(cleanup(history['date'][col]))
+                    row.append(cleanup(history['date'][col], as_type=int))
                 for col in hourly_json_keys:
                     row.append(cleanup(history[col]))
                 writer.writerow(row)
@@ -178,7 +180,7 @@ for short_name, station_id in station_ids.iteritems():
             history, = data['history']['dailysummary']
             row = []
             for col in date_fields:
-                row.append(cleanup(history['date'][col]))
+                row.append(cleanup(history['date'][col], as_type=int))
             for col in daily_json_keys:
                 row.append(cleanup(history[col]))
             writer.writerow(row)
